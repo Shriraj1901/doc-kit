@@ -23,6 +23,32 @@ describe('generateFileList', () => {
     assert(!testFile.content.includes("'./build/Release/addon'"));
   });
 
+  it('should keep the indentation of the original test.js code', () => {
+    const content = [
+      "const addon = require('./build/Release/addon');",
+      '',
+      "for (const name of ['a', 'b']) {",
+      '  console.log(addon.hello(name));',
+      '}',
+    ].join('\n');
+
+    const result = generateFileList([{ name: 'test.js', content }]);
+    const testFile = result.find(file => file.name === 'test.js');
+
+    assert.equal(
+      testFile.content,
+      [
+        "'use strict';",
+        "const common = require('../../common');",
+        'const addon = require(`./build/${common.buildType}/addon`);',
+        '',
+        "for (const name of ['a', 'b']) {",
+        '  console.log(addon.hello(name));',
+        '}',
+      ].join('\n')
+    );
+  });
+
   it('should preserve other files unchanged', () => {
     const codeBlocks = [{ name: 'addon.cc', content: '#include <node.h>' }];
 
